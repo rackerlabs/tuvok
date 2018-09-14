@@ -1,7 +1,0 @@
-tuvok/__init__.py
-tuvok/cli.py
-tuvok.egg-info/PKG-INFO
-tuvok.egg-info/SOURCES.txt
-tuvok.egg-info/dependency_links.txt
-tuvok.egg-info/entry_points.txt
-tuvok.egg-info/top_level.txt
