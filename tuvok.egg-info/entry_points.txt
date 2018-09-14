@@ -1,0 +1,3 @@
+[console_scripts]
+tuvok = tuvok.cli:main
+
