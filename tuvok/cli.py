@@ -18,7 +18,8 @@ def main():
                         required=False)
     args = parser.parse_args()
     checks = [
-        "'.variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].description == null) | ._variable_name'"
+        "'.variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].description == null) | ._variable_name'",
+        "'.variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].type == null) | ._variable_name'"
     ]
     if args.files:
         for f in args.files:
