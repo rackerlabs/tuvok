@@ -14,4 +14,6 @@ RUN curl -SsL https://github.com/kvz/json2hcl/releases/download/v0.0.6/json2hcl_
 RUN mkdir -p ${APP_HOME}
 ADD . ${APP_HOME}
 
-CMD ["/bin/bash"]
+RUN cd ${APP_HOME} && pip3 install --user -e .
+
+ENTRYPOINT [ "python3", "tuvok/tuvok/cli.py" ]
