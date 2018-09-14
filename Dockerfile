@@ -5,10 +5,13 @@ ENV APP_HOME /tuvok
 
 # Install OS packages
 RUN yum update -y && \
-    yum install -y git python37
+    yum install -y git python37 jq
+
+# Install other tools (not packaged)
+RUN curl -SsL https://github.com/kvz/json2hcl/releases/download/v0.0.6/json2hcl_v0.0.6_linux_amd64 \
+  | tee /usr/local/bin/json2hcl > /dev/null && chmod 755 /usr/local/bin/json2hcl && json2hcl -version
 
 RUN mkdir -p ${APP_HOME}
 ADD . ${APP_HOME}
 
 CMD ["/bin/bash"]
-
