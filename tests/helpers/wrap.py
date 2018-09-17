@@ -8,7 +8,8 @@ broken up into more granular classes and method calls. This handles the repeated
 injecting the file parameter(s) and ensuring the script would exit after failing.
 """
 class Wrap():
-    def __init__(self, test, files):
+    def __init__(self, test, files, expect_exit=True):
+        self.expect_exit = expect_exit
         self.test = test
         self.files = files
 
@@ -18,7 +19,10 @@ class Wrap():
             args.extend(['-f', file])
 
         with patch.object(sys, 'argv', args):
-            with pytest.raises(SystemExit) as s:
+            if self.expect_exit:
+                with pytest.raises(SystemExit):
+                    self.test.main()
+            else:
                 self.test.main()
 
     def __exit__(self, type, value, traceback):
