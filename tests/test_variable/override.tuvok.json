@@ -1,0 +1,7 @@
+{
+  "checks": {
+    "V100": {
+      "severity": "INFO"
+    }
+  }
+}

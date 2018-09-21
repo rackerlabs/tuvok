@@ -1,0 +1,26 @@
+{
+  "checks": {
+    "V100": {
+      "description": "Variables must contain description",
+      "severity": "ERROR",
+      "type": "jq",
+      "jq": ".variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].description == null) | ._variable_name",
+      "prevent_override": true
+    },
+    "V101": {
+      "description": "Variables must contain type",
+      "severity": "ERROR",
+      "type": "jq",
+      "jq": ".variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].type == null) | ._variable_name",
+      "prevent_override": false
+    },
+    "O100": {
+      "description": "Outputs should contain description",
+      "severity": "WARNING",
+      "type": "jq",
+      "jq": ".output[] | {_output_name: . | keys[], _data: .[]} | select(._data[].description == null) | ._output_name",
+      "prevent_override": false
+    }
+  },
+  "ignore": []
+}
