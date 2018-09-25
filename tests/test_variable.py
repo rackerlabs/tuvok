@@ -22,6 +22,12 @@ class TestVariable(object):
             err = capsys.readouterr().err
             assert ('Variables must contain description in {}:foo'.format(file)) in err
 
+    def test_warns_if_output_has_no_description(self, capsys):
+        file = 'tests/test_variable/output_has_no_description.tf'
+        with Wrap(self, [file], expect_exit=False):
+            err = capsys.readouterr().err
+            assert ('Outputs should contain description in {}:foo'.format(file)) in err
+
     def test_fails_prevent_override_severity(self, capsys):
         file = 'tests/test_variable/variable_has_type_and_description.tf'
         config = 'tests/test_variable/override.tuvok.json'
