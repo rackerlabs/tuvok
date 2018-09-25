@@ -1,0 +1,8 @@
+{
+  "checks": {
+    "O100": {
+      "severity": "INFO"
+    }
+  },
+  "ignore": ["V101"]
+}
