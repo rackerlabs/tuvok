@@ -8,7 +8,7 @@ Like the Vuclan Tuvok, this project is intended to apply logic and reason to enf
 
 ## How to propose new rules
 
-Process/lifecycle for standards/rules automatically included (include example)
+Please see the [contributing guidelines](docs/CONTRIBUTING.md) for general information on contributing to this project. The process for proposing additional rules, modifying existing rules, or removing/deprecating rules will be followed like any other contribution.
 
 ## Versioning
 
