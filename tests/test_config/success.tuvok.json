@@ -1,8 +1,8 @@
 {
   "checks": {
-    "O100": {
+    "TUVOK103": {
       "severity": "INFO"
     }
   },
-  "ignore": ["V101"]
+  "ignore": ["TUVOK101"]
 }

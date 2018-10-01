@@ -1,6 +1,6 @@
 {
   "checks": {
-    "V100": {
+    "TUVOK100": {
       "severity": "INFO"
     }
   }

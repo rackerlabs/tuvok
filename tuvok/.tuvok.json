@@ -1,24 +1,31 @@
 {
   "checks": {
-    "V100": {
+    "TUVOK100": {
       "description": "Variables must contain description",
       "severity": "ERROR",
       "type": "jq",
       "jq": ".variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].description == null) | ._variable_name",
       "prevent_override": true
     },
-    "V101": {
+    "TUVOK101": {
       "description": "Variables must contain type",
       "severity": "ERROR",
       "type": "jq",
       "jq": ".variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].type == null) | ._variable_name",
       "prevent_override": false
     },
-    "O100": {
+    "TUVOK102": {
       "description": "Outputs should contain description",
       "severity": "WARNING",
       "type": "jq",
       "jq": ".output[] | {_output_name: . | keys[], _data: .[]} | select(._data[].description == null) | ._output_name",
+      "prevent_override": false
+    },
+    "TUVOK103": {
+      "description": "Modules sourced from GitHub should be pinned",
+      "severity": "ERROR",
+      "type": "jq",
+      "jq": ".module[] | { _module_name: . | keys[], _data: .[] } | select((._data[].source != null) and (._data[].source | startswith(\"git@\")) and (._data[].source | contains(\"ref=\") | not)) | ._module_name",
       "prevent_override": false
     }
   },
