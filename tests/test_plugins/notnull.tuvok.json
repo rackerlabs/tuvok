@@ -1,0 +1,8 @@
+{
+  "checks": {
+    "output_description": {
+      "severity": "INFO"
+    }
+  },
+  "ignore": ["NullCheck"]
+}

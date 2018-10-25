@@ -1,22 +1,24 @@
-from tuvok import __version__
 import argparse
 import json
 import logging
 import os
 import platform
 import re
-import subprocess
 import sys
 
+from tuvok import __version__
+from tuvok.checks import Severity
+
+
 EXCLUSIONS = [r'.git', r'.terraform', r'.circleci', '__pycache__', r'*.egg-info']
-LOG = logging.getLogger()
+LOG = logging.getLogger().getChild('tuvok')
 
 
 def load_config(file, merge=None):
     if not os.path.exists(file) and merge is None:
         raise Exception("Configuration file {} does not exist".format(file))
     elif not os.path.exists(file):
-        LOG.warn("Custom configuration file {} does not exist".format(file))
+        LOG.warning("Custom configuration file {} does not exist".format(file))
         return merge
 
     with open(file) as f:
@@ -67,7 +69,7 @@ def build_file_list(path):
         # if it doesn't exist, complain
         if not os.path.exists(p):
             err = "File does not exist: {}".format("] [".join(p))
-            LOG.warn(err)
+            LOG.warning(err)
             raise Exception(err)
 
         # ensure any customizations are loaded from directories
@@ -120,12 +122,14 @@ def main():
                          help="Set log-level to DEBUG.")
     parser.set_defaults(loglevel=logging.WARNING)
 
+    parser.add_argument('--list-plugins', '-p', dest='list_plugins', default=False, action='store_true',
+                        required=False)
+
     parser.add_argument('--config', '-c', dest='config', default=[],
                         help='Custom configuration files to be loaded', action='append',
                         required=False)
     parser.add_argument('path', action='store', nargs='*', default=['.'],
                         help='files or directories to scan')
-
     args = parser.parse_args()
 
     # setup logging before doing anything else
@@ -133,31 +137,54 @@ def main():
     logging.basicConfig(level=int(os.environ.get('LOG_LEVEL', level)))
     LOG.setLevel(int(os.environ.get('LOG_LEVEL', level)))
 
+    from tuvok import tuvok_plugins, tuvok_checks
+    if args.list_plugins:
+        LOG.warning('Loaded plugins: %s', tuvok_plugins)
+        LOG.warning('Loaded checks: %s', tuvok_checks)
+        return
+
     # find any files and configs we might be interested in
     (files_to_scan, extra_configs) = build_file_list(args.path)
 
     # build a configuration by merging
     config = build_configuration(args.config, extra_configs)
 
-    error_encountered = False
-    LOG.info('Scanning %s files and executing checks', len(files_to_scan))
-    for f in files_to_scan:
-        for check, check_details in config['checks'].items():
-            if check in config['ignore']:
-                continue
-            if check_details['type'] == 'jq':
-                query = 'json2hcl --reverse < {} | jq -rc {}'.format(f, translate_jq(check_details['jq']))
-                (stdout, stderr) = subprocess.Popen(query, shell=True, stdout=subprocess.PIPE,
-                                                    stderr=subprocess.PIPE, universal_newlines=True).communicate()
-                if 'Cannot iterate over null' in stderr:
-                    continue
-                for entry in stdout.split():
-                    if 'ERROR' in check_details['severity'].upper():
-                            error_encountered = True
-                    print("[{}] {}-{} in {}:{}".format(check_details['severity'].upper(), check,
-                                                       check_details['description'], f, entry), file=sys.stderr)
+    # dynamically create any checks listed in the local jq config
+    from tuvok.checks.jq import JqCheck
+    for check, check_details in config['checks'].items():
+        if check_details['type'] == 'jq':
+            tuvok_checks.append(JqCheck(
+                check,
+                check_details['description'],
+                check_details['severity'],
+                check_details['jq'],
+                True
+            ))
 
-    if error_encountered:
+    LOG.info('Scanning %s files and executing checks', len(files_to_scan))
+    error_encountered = []
+    for f in files_to_scan:
+        for p in tuvok_checks:
+            if p.get_name() in config['ignore']:
+                continue
+
+            check_result = p.check(f)
+            str_result = 'PASS' if check_result else 'FAIL'
+            sev_result = Severity.DEBUG if check_result else p.get_severity()
+            error_encountered.append(sev_result)
+
+            LOG.log(
+                sev_result.value,
+                "{}-{} {} in {}:{}".format(
+                    p.get_name(),
+                    p.get_description(),
+                    str_result,
+                    f,
+                    p.get_explanation() or 'unknown'
+                )
+            )
+
+    if Severity.ERROR in error_encountered:
         LOG.info("Validation errors reported.")
         sys.exit(1)
 
