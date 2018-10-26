@@ -88,6 +88,22 @@ def build_file_list(path):
     return (sorted(set(files)), configs)
 
 
+def build_configuration(args_config, extra_configs):
+
+    # load the builtin config
+    configs_to_load = [os.path.join(os.path.dirname(__file__), '.tuvok.json')]
+    # load any specified configs on commandline
+    configs_to_load.extend(args_config)
+    # load any found configs from the scan
+    configs_to_load.extend(extra_configs)
+
+    config = None
+    for c in configs_to_load:
+        LOG.debug('Loading configuration file %s', c)
+        config = load_config(c, config)
+    return config
+
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -112,7 +128,7 @@ def main():
 
     args = parser.parse_args()
 
-    # configure logging before doing anything else
+    # setup logging before doing anything else
     level = args.loglevel
     logging.basicConfig(level=int(os.environ.get('LOG_LEVEL', level)))
     LOG.setLevel(int(os.environ.get('LOG_LEVEL', level)))
@@ -120,17 +136,8 @@ def main():
     # find any files and configs we might be interested in
     (files_to_scan, extra_configs) = build_file_list(args.path)
 
-    # load the builtin config
-    configs_to_load = [os.path.join(os.path.dirname(__file__), '.tuvok.json')]
-    # load any specified configs on commandline
-    configs_to_load.extend(args.config)
-    # load any found configs from the scan
-    configs_to_load.extend(extra_configs)
-
-    config = None
-    for c in configs_to_load:
-        LOG.debug('Loading configuration file %s', c)
-        config = load_config(c, config)
+    # build a configuration by merging
+    config = build_configuration(args.config, extra_configs)
 
     error_encountered = False
     LOG.info('Scanning %s files and executing checks', len(files_to_scan))
