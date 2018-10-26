@@ -58,35 +58,38 @@ def main():
     parser.add_argument('--version', '-v',
                         action='version',
                         version='version %s' % __version__)
-    parser.add_argument('--file', '-f', dest='files',
-                        help='File to be scanned', action='append',
-                        required=False)
     parser.add_argument('--config', '-c', dest='config', default=[],
                         help='Custom configuration files to be loaded', action='append',
                         required=False)
-    parser.add_argument('--directory', '-d', dest='directory',
-                        help='Directory to be scanned', default=os.getcwd(),
-                        required=False)
+    parser.add_argument('path', action='store', nargs='*', default=['.'],
+                        help='files or directories to scan')
+
     args = parser.parse_args()
+    print(args.path)
 
     config = load_config(os.path.join(os.path.dirname(__file__), '.tuvok.json'))
 
-    files = []
-    if args.files:
-        file_not_exist = [file for file in args.files if not os.path.exists(file)]
-        if file_not_exist:
-            raise Exception("Error:  File does not exist: [{}]".format("] [".join(file_not_exist)))
-        files.extend(args.files)
-    else:
-        if not os.path.isdir(args.directory):
-            raise Exception("Error: Directory {} does not exist".format(args.directory))
-        custom_config = os.path.join(args.directory, '.tuvok.json')
-        if os.path.exists(custom_config):
-            args.config.append(custom_config)
-        for root, subdir_list, file_list in os.walk(args.directory):
-            if any(re.search(r'[\\/]{}([\\/].*)?$'.format(x), root) is not None for x in EXCLUSIONS):
-                continue
-            files.extend([os.path.join(root, file) for file in file_list if re.search(r'.tf$', file)])
+    files = []  # awkward double list comprehension due to argparse
+    for p in set(args.path):
+
+        # if it doesn't exist, complain
+        if not os.path.exists(p):
+            raise Exception("Error:  File does not exist: {}".format("] [".join(p)))
+
+        # ensure any customizations are loaded from directories
+        if os.path.isdir(p):
+            custom_config = os.path.join(p, '.tuvok.json')
+            if os.path.exists(custom_config):
+                args.config.append(custom_config)
+
+            # get any files underneath
+            for root, subdir_list, file_list in os.walk(p):
+                if any(re.search(r'[\\/]{}([\\/].*)?$'.format(x), root) is not None for x in EXCLUSIONS):
+                    continue
+
+                files.extend([os.path.join(root, file) for file in file_list if re.search(r'.tf$', file)])
+        else:
+            files.extend([p])
 
     for c in args.config:
         config = load_config(c, config)
