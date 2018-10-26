@@ -1,27 +1,27 @@
 {
   "checks": {
-    "TUVOK100": {
+    "variable_description": {
       "description": "Variables must contain description",
       "severity": "ERROR",
       "type": "jq",
       "jq": ".variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].description == null) | ._variable_name",
       "prevent_override": true
     },
-    "TUVOK101": {
+    "variable_type": {
       "description": "Variables must contain type",
       "severity": "ERROR",
       "type": "jq",
       "jq": ".variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data[].type == null) | ._variable_name",
       "prevent_override": false
     },
-    "TUVOK102": {
+    "output_description": {
       "description": "Outputs should contain description",
       "severity": "WARNING",
       "type": "jq",
       "jq": ".output[] | {_output_name: . | keys[], _data: .[]} | select(._data[].description == null) | ._output_name",
       "prevent_override": false
     },
-    "TUVOK103": {
+    "github_module_ref": {
       "description": "Modules sourced from GitHub should be pinned",
       "severity": "ERROR",
       "type": "jq",

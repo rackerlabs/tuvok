@@ -16,9 +16,9 @@ class Wrap():
         self.configs = configs
 
     def __enter__(self):
-        args = ['$/tuvok/cli.py']
+        args = ['$/tuvok/cli.py', '-VV']
         for file in self.files:
-            args.extend(['-f', file])
+            args.append(file)
 
         for config in self.configs:
             args.extend(['-c', config])

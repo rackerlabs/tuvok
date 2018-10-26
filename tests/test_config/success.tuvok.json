@@ -1,8 +1,8 @@
 {
   "checks": {
-    "TUVOK103": {
+    "output_description": {
       "severity": "INFO"
     }
   },
-  "ignore": ["TUVOK101"]
+  "ignore": ["variable_type"]
 }

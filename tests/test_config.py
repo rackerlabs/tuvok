@@ -9,25 +9,23 @@ class TestConfig(object):
     def teardown(self):
         self.main = None
 
-    def test_fails_prevent_override_severity(self, capsys):
+    def test_fails_prevent_override_severity(self, caplog):
         file = 'tests/test_config/valid.tf'
         config = 'tests/test_config/override.tuvok.json'
         with Wrap(self, [file], [config]):
-            err = capsys.readouterr().err
-            assert ('Cannot override check TUVOK100 in Configuration file {}'.format(config)) in err
+            assert ('Cannot override check variable_description in Configuration file {}'.format(config)) in caplog.text
 
-    def test_fails_prevent_override_ignore(self, capsys):
+    def test_fails_prevent_override_ignore(self, caplog):
         file = 'tests/test_config/valid.tf'
         config = 'tests/test_config/ignore.tuvok.json'
         with Wrap(self, [file], [config]):
-            err = capsys.readouterr().err
-            assert ('Cannot ignore check TUVOK100 in Configuration file {}'.format(config)) in err
+            assert ('Cannot ignore check variable_description in Configuration file {}'.format(config)) in caplog.text
 
-    def test_passes_override_success(self, capsys):
+    def test_passes_override_success(self, capsys, caplog):
         file = 'tests/test_config/valid.tf'
         config = 'tests/test_config/success.tuvok.json'
+        out, err = capsys.readouterr()
         with Wrap(self, [file], [config], expect_exit=False):
-            out, err = capsys.readouterr()
             assert err == ''
-            assert ('Rule TUVOK103 will be set to severity INFO by custom config {}'.format(config)) in out
-            assert ('Rule TUVOK101 will be ignored by custom config {}'.format(config)) in out
+            assert ('Rule output_description will be set to severity INFO by custom config {}'.format(config)) in caplog.text
+            assert ('Rule variable_type will be ignored by custom config {}'.format(config)) in caplog.text
