@@ -23,7 +23,9 @@ def load_config(file, merge=None):
         config = json.load(f)
     if merge is None:
         if 'checks' not in config:
-            raise Exception("Error:  No checks defined in Configuration file {}".format(file))
+            err = "No checks defined in Configuration file {}".format(file)
+            LOG.error(err)
+            raise Exception(err)
         if 'ignore' not in config:
             config['ignore'] = []
         return config
@@ -55,6 +57,37 @@ def translate_jq(query):
     return "'{}'".format(query)
 
 
+def build_file_list(path):
+    files = []
+    configs = []
+
+    LOG.debug('Loading specified files: %s', ",".join(path))
+    for p in set(path):
+
+        # if it doesn't exist, complain
+        if not os.path.exists(p):
+            err = "File does not exist: {}".format("] [".join(p))
+            LOG.warn(err)
+            raise Exception(err)
+
+        # ensure any customizations are loaded from directories
+        if os.path.isdir(p):
+            custom_config = os.path.join(p, '.tuvok.json')
+            if os.path.exists(custom_config):
+                configs.append(custom_config)
+
+            # get any files underneath
+            for root, subdir_list, file_list in os.walk(p):
+                if any(re.search(r'[\\/]{}([\\/].*)?$'.format(x), root) is not None for x in EXCLUSIONS):
+                    continue
+
+                files.extend([os.path.join(root, file) for file in file_list if re.search(r'.tf$', file)])
+        else:
+            files.extend([p])
+
+    return (sorted(set(files)), configs)
+
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -79,45 +112,27 @@ def main():
 
     args = parser.parse_args()
 
+    # configure logging before doing anything else
     level = args.loglevel
     logging.basicConfig(level=int(os.environ.get('LOG_LEVEL', level)))
     LOG.setLevel(int(os.environ.get('LOG_LEVEL', level)))
 
-    internal_config = os.path.join(os.path.dirname(__file__), '.tuvok.json')
-    LOG.debug('Loading internal configuration file %s', internal_config)
-    config = load_config(internal_config)
+    # find any files and configs we might be interested in
+    (files_to_scan, extra_configs) = build_file_list(args.path)
 
-    LOG.debug('Loading specified files: %s', ",".join(args.path))
-    files = []  # awkward double list comprehension due to argparse
-    for p in set(args.path):
+    # load the builtin config
+    configs_to_load = [os.path.join(os.path.dirname(__file__), '.tuvok.json')]
+    # load any specified configs on commandline
+    configs_to_load.extend(args.config)
+    # load any found configs from the scan
+    configs_to_load.extend(extra_configs)
 
-        # if it doesn't exist, complain
-        if not os.path.exists(p):
-            err = "File does not exist: {}".format("] [".join(p))
-            LOG.warn(err)
-            raise Exception(err)
-
-        # ensure any customizations are loaded from directories
-        if os.path.isdir(p):
-            custom_config = os.path.join(p, '.tuvok.json')
-            if os.path.exists(custom_config):
-                args.config.append(custom_config)
-
-            # get any files underneath
-            for root, subdir_list, file_list in os.walk(p):
-                if any(re.search(r'[\\/]{}([\\/].*)?$'.format(x), root) is not None for x in EXCLUSIONS):
-                    continue
-
-                files.extend([os.path.join(root, file) for file in file_list if re.search(r'.tf$', file)])
-        else:
-            files.extend([p])
-
-    for c in args.config:
-        LOG.info('Loading additional configuration file %s', c)
+    config = None
+    for c in configs_to_load:
+        LOG.debug('Loading configuration file %s', c)
         config = load_config(c, config)
 
     error_encountered = False
-    files_to_scan = sorted(set(files))
     LOG.info('Scanning %s files and executing checks', len(files_to_scan))
     for f in files_to_scan:
         for check, check_details in config['checks'].items():
