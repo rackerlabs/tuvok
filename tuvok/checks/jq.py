@@ -21,19 +21,27 @@ class JqCheck(BaseTuvokCheck):
         self.jq_command = command
 
     def get_explanation(self):
-        return ",".join(self.explanation)
+        if self.explanation:
+            return ",".join(self.explanation)
+        return None
 
     def check(self, f):
         query = 'json2hcl --reverse < {} | jq -rc {}'.format(os.path.abspath(f), translate_jq(self.jq_command))
-        (stdout, stderr) = subprocess.Popen(query, shell=True, stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE, universal_newlines=True).communicate()
+
+        proc = subprocess.Popen(
+            query, shell=True, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, universal_newlines=True)
+        (stdout, stderr) = proc.communicate()
+
+        if 'Cannot iterate over null' in stderr:
+            # nothing was found!
+            return True
+        if proc.returncode > 0:
+            self.explanation.append(str(stderr))
+            raise Exception(str(stderr))
 
         encountered_problem = False
         self.explanation = []
-
-        # nothing was found!
-        if 'Cannot iterate over null' in stderr:
-            return True
 
         for entry in stdout.split():
             self.explanation.append(entry)

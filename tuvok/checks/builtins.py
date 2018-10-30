@@ -15,8 +15,6 @@ class FileLayoutCheck(BaseTuvokCheck):
             'Ensure variables and outputs are only in files of the same name',
             Severity.ERROR
         )
-        self.reasons = []
-        self.failed = False
 
     def get_explanation(self):
         return '\n'.join(set(self.reasons))
@@ -24,6 +22,7 @@ class FileLayoutCheck(BaseTuvokCheck):
     def check(self, path):
         parsed_json = hcl2json(path)
         self.reasons = []
+        self.failed = False
 
         # output/input/variable have been put in the wrong file
         TYPES = set(['output', 'variable'])
