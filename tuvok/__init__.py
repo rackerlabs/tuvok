@@ -22,6 +22,9 @@ import logging
 import importlib
 import inspect
 import pkgutil
+import os
+import subprocess
+import json
 
 import tuvok.plugins
 
@@ -35,6 +38,18 @@ def iter_namespace(ns_pkg):
 
 def not_abstract_class(o):
     return inspect.isclass(o) and not inspect.isabstract(o)
+
+
+def hcl2json(f):
+    query = 'json2hcl --reverse < {}'.format(os.path.abspath(f))
+    proc = subprocess.Popen(
+        query, shell=True, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, universal_newlines=True)
+    (stdout, stderr) = proc.communicate()
+
+    if proc.returncode > 0:
+        raise Exception(str(stderr))
+    return json.loads(str(stdout))
 
 
 plugin_modules = [
