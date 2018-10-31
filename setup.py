@@ -18,6 +18,7 @@ setup(
     ],
     keywords='',
     packages=find_packages(exclude=['venv']),
+    package_data={'tuvok': ['.tuvok.json']},
     install_requires=DEPENDENCIES,
     entry_points={
         'console_scripts': [
