@@ -38,12 +38,6 @@ class BaseTuvokCheck(metaclass=abc.ABCMeta):
     def get_explanation(self):
         return None
 
-    def is_prevent_override(self):
-        return False
-
-    def is_enabled_default(self):
-        return True
-
     def safe_check(self, path):
         try:
             return self.check(path)

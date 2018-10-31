@@ -168,7 +168,7 @@ def main():
             if p.get_name() in config['ignore']:
                 continue
 
-            check_result = p.check(f)
+            check_result = p.safe_check(f)
             str_result = 'PASS' if check_result else 'FAIL'
             sev_result = Severity.DEBUG if check_result else p.get_severity()
             error_encountered.append(sev_result)
