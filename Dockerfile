@@ -1,19 +1,18 @@
-FROM amazonlinux:2.0.20180622.1
+FROM python:3-alpine
 LABEL maintainer="Rackspace"
 
 ENV APP_HOME /tuvok
+ENV PATH="/root/.local/bin:${PATH}"
 
-# Install OS packages
-RUN yum update -y && \
-    yum install -y git python37 jq
-
-# Install other tools (not packaged)
-RUN curl -SsL https://github.com/kvz/json2hcl/releases/download/v0.0.6/json2hcl_v0.0.6_linux_amd64 \
-  | tee /usr/local/bin/json2hcl > /dev/null && chmod 755 /usr/local/bin/json2hcl && json2hcl -version
+# Install packages/updates/dependencies
+ADD https://github.com/kvz/json2hcl/releases/download/v0.0.6/json2hcl_v0.0.6_linux_amd64 /usr/local/bin/json2hcl
+RUN chmod +x /usr/local/bin/json2hcl
+RUN apk --update add bash git openssh curl py-pip jq && pip install --upgrade pip
 
 RUN mkdir -p ${APP_HOME}
 ADD . ${APP_HOME}
+RUN cd ${APP_HOME} && pip3 install --user -r test-requirements.txt && pip3 install --user -r requirements.txt && pip3 install --user -e .
 
-RUN cd ${APP_HOME} && pip3 install --user -r test-requirements.txt -e .
-
-ENTRYPOINT [ "python3", "tuvok/tuvok/cli.py" ]
+# just try to run tuvok, so we can be sure it is installed correctly
+RUN tuvok --version
+CMD [ "tuvok" ]
