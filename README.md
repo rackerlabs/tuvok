@@ -6,6 +6,57 @@
 
 Like the Vuclan Tuvok, this project is intended to apply logic and reason to enforce a given set of Terraform standards.
 
+## Using the Dockerfile provided with this project
+
+#### Building the image
+```
+$ docker build -t tuvok .
+Sending build context to Docker daemon  417.8kB
+Step 1/11 : FROM python:3-alpine
+ ---> 408808fb1a9e
+Step 2/11 : LABEL maintainer="Rackspace"
+ ---> Using cache
+ ---> 7ffba978ee28
+<snip output>
+Successfully built 55d574d9bb8c
+Successfully tagged tuvok:latest
+```
+
+#### Confirming it works
+```
+$ docker run tuvok
+$ docker run tuvok -c "tuvok -V"
+INFO:tuvok:Scanning 0 files and executing checks
+$ docker run tuvok -c "tuvok --version"
+version 0.0.1
+```
+
+#### Mounting a local directory 'tests' of files to check
+```
+$ docker run -v $(pwd)/tests:/root/tests:ro tuvok -c "tuvok -V /root/tests/"
+INFO:tuvok:Scanning 15 files and executing checks
+ERROR:tuvok:github_module_ref-Modules sourced from GitHub should be pinned FAIL in /root/tests/test_module/module_git_missingref.tf:some_module
+ERROR:tuvok:github_module_ref-Modules sourced from GitHub should be pinned FAIL in /root/tests/test_module/module_github_missingref.tf:some_module
+WARNING:tuvok:output_description-Outputs should contain description FAIL in /root/tests/test_output/bad/outputs.tf:foo
+ERROR:tuvok:FileLayoutCheck-Ensure variables and outputs are only in files of the same name FAIL in /root/tests/test_plugins/bad/outputs.tf:variable:foo was not found in a file named variables.tf
+ERROR:tuvok:FileLayoutCheck-Ensure variables and outputs are only in files of the same name FAIL in /root/tests/test_plugins/bad/variables.tf:output:foo was not found in a file named outputs.tf
+ERROR:tuvok:variable_description-Variables must contain description FAIL in /root/tests/test_variable/bad/variables.tf:foo
+ERROR:tuvok:variable_type-Variables must contain type FAIL in /root/tests/test_variable/bad/variables.tf:bar
+```
+
+#### Running other commands
+```
+$ docker run tuvok "ls -la"
+total 16
+drwx------    1 root     root          4096 Nov 14 15:53 .
+drwxr-xr-x    1 root     root          4096 Nov 14 15:56 ..
+drwxr-xr-x    3 root     root          4096 Nov 14 15:53 .cache
+drwx------    4 root     root          4096 Nov 14 15:53 .local
+$ docker run local/tuvok:latest -c "cd /tuvok && pytest -q"
+................. [100%]
+17 passed in 9.61 seconds
+```
+
 ## How to propose new rules
 
 Please see the [contributing guidelines](docs/CONTRIBUTING.md) for general information on contributing to this project. The process for proposing additional rules, modifying existing rules, or removing/deprecating rules will be followed like any other contribution.
