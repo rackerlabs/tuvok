@@ -8,14 +8,10 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Install dependencies
-          command: |
-            apk add --no-cache py-pip
-      - run:
           name: Build application Docker image
           command: |
             docker build -t tuvok:latest .
       - run:
           name: Run tests
           command: |
-            docker run -w /tuvok --entrypoint="/bin/bash" tuvok:latest -c "/root/.local/bin/pytest -v"
+            docker run tuvok:latest -c "pytest -v"
