@@ -6,12 +6,6 @@ import subprocess
 import shlex
 
 
-def translate_jq(query):
-    if platform.system() == 'Windows':
-        return '\"{}\"'.format(query.replace('"', '\\\"'))
-    return "'{}'".format(query)
-
-
 class JqCheck(BaseTuvokCheck):
 
     jq_command = None
@@ -26,7 +20,6 @@ class JqCheck(BaseTuvokCheck):
             return ",".join(self.explanation)
         return None
 
-    # @lru_cache(maxsize=32)
     def readfile(self, f):
         content = None
         with open(os.path.abspath(f), 'r') as content_file:
@@ -34,7 +27,6 @@ class JqCheck(BaseTuvokCheck):
 
         return content
 
-    # @lru_cache(maxsize=32)
     def hcl2json(self, text):
         query = 'json2hcl --reverse'.split(' ')
 
@@ -49,12 +41,12 @@ class JqCheck(BaseTuvokCheck):
         return str(stdout)
 
     def check(self, f):
-        query = 'jq -rc {}'.format(translate_jq(self.jq_command))
+        query = ['jq','-rc', '{}'.format(self.jq_command)]
         text_hcl = self.readfile(f)
         test_json = self.hcl2json(text_hcl)
 
         proc = subprocess.Popen(
-            args=query, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            args=query, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, universal_newlines=True)
         (stdout, stderr) = proc.communicate(input=test_json)
 
