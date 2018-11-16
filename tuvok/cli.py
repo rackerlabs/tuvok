@@ -178,14 +178,14 @@ def main():
         check_result = future.result()
 
         str_result = 'PASS' if check_result.get_success() else 'FAIL'
-        sev_result = Severity.DEBUG if check_result.get_success() else p.get_severity()
+        sev_result = Severity.DEBUG if check_result.get_success() else check_result.get_severity()
         error_encountered.append(sev_result)
 
         LOG.log(
             sev_result.value,
             "{}-{} {} in {}:{}".format(
-                p.get_name(),
-                p.get_description(),
+                check_result.get_name(),
+                check_result.get_description(),
                 str_result,
                 f,
                 check_result.get_explanation() or 'unknown'

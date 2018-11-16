@@ -18,7 +18,7 @@ class FileLayoutCheck(BaseTuvokCheck):
 
     def check(self, path):
         parsed_json = hcl2json(path)
-        res = CheckResult()
+        res = CheckResult(check=self)
 
         # output/input/variable have been put in the wrong file
         TYPES = set(['output', 'variable'])

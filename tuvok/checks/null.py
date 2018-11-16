@@ -10,4 +10,4 @@ class NullCheck(BaseTuvokCheck):
         super().__init__()
 
     def check(self, path):
-        return CheckResult()
+        return CheckResult(check=self)

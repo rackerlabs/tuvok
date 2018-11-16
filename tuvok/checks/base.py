@@ -18,9 +18,10 @@ class Severity(Enum):
 
 class CheckResult(metaclass=abc.ABCMeta):
 
-    def __init__(self, success=True, explanation=[]):
+    def __init__(self, success=True, explanation=[], check=None):
         self.explanation = []
         self.success = success
+        self.check = check
 
     def add_explanation(self, expl):
         self.explanation.append(expl)
@@ -33,6 +34,15 @@ class CheckResult(metaclass=abc.ABCMeta):
 
     def set_success(self, success):
         self.success = success
+
+    def get_severity(self):
+        return self.check.get_severity()
+
+    def get_name(self):
+        return self.check.get_name()
+
+    def get_description(self):
+        return self.check.get_description()
 
 
 class BaseTuvokCheck(metaclass=abc.ABCMeta):
@@ -59,7 +69,7 @@ class BaseTuvokCheck(metaclass=abc.ABCMeta):
             return self.check(path)
         except Exception as e:
             LOG.log(self.severity.value, e)
-            return CheckResult(success=False, explanation=[str(e)])
+            return CheckResult(success=False, explanation=[str(e)], check=self)
 
     @abc.abstractmethod
     def check(self, path):

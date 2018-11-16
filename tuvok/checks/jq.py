@@ -40,7 +40,7 @@ class JqCheck(BaseTuvokCheck):
         return str(stdout)
 
     def check(self, f):
-        res = CheckResult()
+        res = CheckResult(check=self)
 
         query = 'json2hcl --reverse < {} | jq -rc {}'.format(f, translate_jq(self.jq_command))
         proc = subprocess.Popen(
