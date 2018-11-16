@@ -3,6 +3,7 @@ from .base import BaseTuvokCheck
 import os
 import platform
 import subprocess
+import shlex
 
 
 def translate_jq(query):
@@ -25,19 +26,43 @@ class JqCheck(BaseTuvokCheck):
             return ",".join(self.explanation)
         return None
 
-    def check(self, f):
-        query = 'json2hcl --reverse < {} | jq -rc {}'.format(os.path.abspath(f), translate_jq(self.jq_command))
+    # @lru_cache(maxsize=32)
+    def readfile(self, f):
+        content = None
+        with open(os.path.abspath(f), 'r') as content_file:
+            content = content_file.read()
+
+        return content
+
+    # @lru_cache(maxsize=32)
+    def hcl2json(self, text):
+        query = 'json2hcl --reverse'.split(' ')
 
         proc = subprocess.Popen(
-            query, shell=True, stdout=subprocess.PIPE,
+            args=query, shell=False, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True)
+        (stdout, stderr) = proc.communicate(input=text)
+
+        if proc.returncode > 0:
+            raise Exception(str(stderr))
+
+        return str(stdout)
+
+    def check(self, f):
+        query = 'jq -rc {}'.format(translate_jq(self.jq_command))
+        text_hcl = self.readfile(f)
+        test_json = self.hcl2json(text_hcl)
+
+        proc = subprocess.Popen(
+            args=query, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, universal_newlines=True)
-        (stdout, stderr) = proc.communicate()
+        (stdout, stderr) = proc.communicate(input=test_json)
 
         if 'Cannot iterate over null' in stderr:
             # nothing was found!
             return True
         if proc.returncode > 0:
-            self.explanation.append(str(stderr))
+            # self.explanation.append(str(stderr))
             raise Exception(str(stderr))
 
         encountered_problem = False
