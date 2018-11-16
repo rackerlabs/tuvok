@@ -4,6 +4,13 @@ import os
 import subprocess
 
 
+def translate_jq(query):
+    import platform
+    if platform.system() == 'Windows':
+        return '\"{}\"'.format(query.replace('"', '\\\"'))
+    return "'{}'".format(query)
+
+
 class JqCheck(BaseTuvokCheck):
 
     jq_command = None
@@ -35,14 +42,11 @@ class JqCheck(BaseTuvokCheck):
     def check(self, f):
         res = CheckResult()
 
-        query = ['jq', '-rc', '{}'.format(self.jq_command)]
-        text_hcl = self.readfile(f)
-        test_json = self.hcl2json(text_hcl)
-
+        query = 'json2hcl --reverse < {} | jq -rc {}'.format(f, translate_jq(self.jq_command))
         proc = subprocess.Popen(
-            args=query, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            args=query, shell=True, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, universal_newlines=True)
-        (stdout, stderr) = proc.communicate(input=test_json)
+        (stdout, stderr) = proc.communicate()
 
         if 'Cannot iterate over null' in stderr:
             # nothing was found!
