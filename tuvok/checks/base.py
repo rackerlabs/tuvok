@@ -16,6 +16,25 @@ class Severity(Enum):
     NOTSET = logging.NOTSET
 
 
+class CheckResult(metaclass=abc.ABCMeta):
+
+    def __init__(self, success=True, explanation=[]):
+        self.explanation = []
+        self.success = success
+
+    def add_explanation(self, expl):
+        self.explanation.append(expl)
+
+    def get_explanation(self):
+        return None if len(self.explanation) == 0 else ','.join(self.explanation)
+
+    def get_success(self):
+        return self.success
+
+    def set_success(self, success):
+        self.success = success
+
+
 class BaseTuvokCheck(metaclass=abc.ABCMeta):
 
     def __init__(self, name=None, description=None, severity=Severity.WARNING, prevent=False):
@@ -35,15 +54,12 @@ class BaseTuvokCheck(metaclass=abc.ABCMeta):
     def get_severity(self):
         return self.severity
 
-    def get_explanation(self):
-        return None
-
     def safe_check(self, path):
         try:
             return self.check(path)
         except Exception as e:
             LOG.log(self.severity.value, e)
-            return False
+            return CheckResult(success=False, explanation=[str(e)])
 
     @abc.abstractmethod
     def check(self, path):

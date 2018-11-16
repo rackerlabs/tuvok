@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import concurrent.futures
 import os
 import platform
 import re
@@ -162,27 +163,34 @@ def main():
             ))
 
     LOG.info('Scanning %s files and executing checks', len(files_to_scan))
-    error_encountered = []
+
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+    results = []
     for f in files_to_scan:
         for p in tuvok_checks:
             if p.get_name() in config['ignore']:
                 continue
 
-            check_result = p.safe_check(f)
-            str_result = 'PASS' if check_result else 'FAIL'
-            sev_result = Severity.DEBUG if check_result else p.get_severity()
-            error_encountered.append(sev_result)
+            results.append(executor.submit(p.safe_check, f))
 
-            LOG.log(
-                sev_result.value,
-                "{}-{} {} in {}:{}".format(
-                    p.get_name(),
-                    p.get_description(),
-                    str_result,
-                    f,
-                    p.get_explanation() or 'unknown'
-                )
+    error_encountered = []
+    for future in results:
+        check_result = future.result()
+
+        str_result = 'PASS' if check_result.get_success() else 'FAIL'
+        sev_result = Severity.DEBUG if check_result.get_success() else p.get_severity()
+        error_encountered.append(sev_result)
+
+        LOG.log(
+            sev_result.value,
+            "{}-{} {} in {}:{}".format(
+                p.get_name(),
+                p.get_description(),
+                str_result,
+                f,
+                check_result.get_explanation() or 'unknown'
             )
+        )
 
     if Severity.ERROR in error_encountered:
         LOG.info("Validation errors reported.")

@@ -1,4 +1,4 @@
-from .base import BaseTuvokCheck
+from .base import BaseTuvokCheck, CheckResult
 
 
 class NullCheck(BaseTuvokCheck):
@@ -10,4 +10,4 @@ class NullCheck(BaseTuvokCheck):
         super().__init__()
 
     def check(self, path):
-        return True
+        return CheckResult()

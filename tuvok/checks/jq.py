@@ -1,24 +1,16 @@
-from .base import BaseTuvokCheck
+from .base import BaseTuvokCheck, CheckResult
 
 import os
-import platform
 import subprocess
-import shlex
 
 
 class JqCheck(BaseTuvokCheck):
 
     jq_command = None
-    explanation = None
 
     def __init__(self, name, description, severity, command, prevent):
         super().__init__(name, description, severity, prevent)
         self.jq_command = command
-
-    def get_explanation(self):
-        if self.explanation:
-            return ",".join(self.explanation)
-        return None
 
     def readfile(self, f):
         content = None
@@ -41,7 +33,9 @@ class JqCheck(BaseTuvokCheck):
         return str(stdout)
 
     def check(self, f):
-        query = ['jq','-rc', '{}'.format(self.jq_command)]
+        res = CheckResult()
+
+        query = ['jq', '-rc', '{}'.format(self.jq_command)]
         text_hcl = self.readfile(f)
         test_json = self.hcl2json(text_hcl)
 
@@ -52,16 +46,13 @@ class JqCheck(BaseTuvokCheck):
 
         if 'Cannot iterate over null' in stderr:
             # nothing was found!
-            return True
+            return res
+
         if proc.returncode > 0:
-            # self.explanation.append(str(stderr))
             raise Exception(str(stderr))
 
-        encountered_problem = False
-        self.explanation = []
-
         for entry in stdout.split():
-            self.explanation.append(entry)
-            encountered_problem = True
+            res.add_explanation(entry)
+            res.set_success(False)
 
-        return not encountered_problem
+        return res
