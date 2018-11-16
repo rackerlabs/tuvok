@@ -42,7 +42,7 @@ class BaseTuvokCheck(metaclass=abc.ABCMeta):
         try:
             return self.check(path)
         except Exception as e:
-            LOG.log(self.severity, e)
+            LOG.log(self.severity.value, e)
             return False
 
     @abc.abstractmethod
