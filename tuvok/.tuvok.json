@@ -27,6 +27,20 @@
       "type": "jq",
       "jq": ".module[] | { _module_name: . | keys[], _data: .[] } | select((._data[].source != null) and ((._data[].source | startswith(\"git@\")) or (._data[].source | startswith(\"github.com/\"))) and (._data[].source | contains(\"ref=\") | not)) | ._module_name",
       "prevent_override": false
+    },
+    "github_rackspace_module_use_ssh": {
+      "description": "Rackspace module references should use SSH source paths",
+      "severity": "ERROR",
+      "type": "jq",
+      "jq": ".module[] | { _module_name: . | keys[], _data: .[] } | select((._data[].source != null) and (._data[].source | startswith(\"github.com/rackspace-infrastructure-automation\"))) | ._module_name",
+      "prevent_override": true
+    },
+    "github_module_use_ssh": {
+      "description": "Module references should use SSH source paths",
+      "severity": "WARNING",
+      "type": "jq",
+      "jq": ".module[] | { _module_name: . | keys[], _data: .[] } | select((._data[].source != null) and (._data[].source | startswith(\"github.com/\")) and (._data[].source | startswith(\"github.com/rackspace-infrastructure-automation\") | not)) | ._module_name",
+      "prevent_override": false
     }
   },
   "ignore": []
