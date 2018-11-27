@@ -12,7 +12,7 @@ class TestOutput(object):
     def test_warns_if_output_has_no_description(self, caplog):
         file = 'tests/test_output/bad/outputs.tf'
         with Wrap(self, [file], expect_exit=False):
-            assert ('Outputs should contain description FAIL in {}:foo'.format(file)) in caplog.text
+            assert ('[FAIL] output_description:Outputs should contain description:foo:{}'.format(file)) in caplog.text
 
     def test_passes_if_output_has_description(self, capsys):
         with Wrap(self, ['tests/test_output/good/outputs.tf'], expect_exit=False):

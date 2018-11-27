@@ -40,23 +40,22 @@ class JqCheck(BaseTuvokCheck):
         return str(stdout)
 
     def check(self, f):
-        res = CheckResult(check=self)
-
         query = 'json2hcl --reverse < {} | jq -rc {}'.format(f, translate_jq(self.jq_command))
         proc = subprocess.Popen(
             args=query, shell=True, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, universal_newlines=True)
         (stdout, stderr) = proc.communicate()
 
-        if 'Cannot iterate over null' in stderr:
-            # nothing was found!
-            return res
+        if 'Cannot iterate over null' in stderr or stdout is '':
+            # nothing was found! pass, no JQ matches
+            return CheckResult(True, str(f), self)
 
         if proc.returncode > 0:
             raise Exception(str(stderr))
 
+        results = []
         for entry in stdout.split():
-            res.add_explanation(entry)
-            res.set_success(False)
+            explanation = "{}:{}".format(entry, str(f))
+            results.append(CheckResult(False, explanation, self))
 
-        return res
+        return results

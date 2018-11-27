@@ -18,7 +18,7 @@ class FileLayoutCheck(BaseTuvokCheck):
 
     def check(self, path):
         parsed_json = hcl2json(path)
-        res = CheckResult(check=self)
+        results = []
 
         # output/input/variable have been put in the wrong file
         TYPES = set(['output', 'variable'])
@@ -28,9 +28,11 @@ class FileLayoutCheck(BaseTuvokCheck):
             expected_filename = '{}s.tf'.format(prefix)
 
             if len(found_top_level_objs) > 0 and actual_filename != expected_filename:
-                res.set_success(False)
                 bad_names = [','.join(list(x.keys())) for x in found_top_level_objs]
-                expl = '{}:{} was not found in a file named {}'.format(prefix, ','.join(bad_names), expected_filename)
-                res.add_explanation(expl)
+                expl = '{}:{} was not found in a file named {}:{}'.format(prefix, ','.join(bad_names), expected_filename, path)
+                results.append(CheckResult(False, expl, self))
+            else:
+                expl = ':'.join([prefix, path])
+                results.append(CheckResult(True, expl, self))
 
-        return res
+        return results

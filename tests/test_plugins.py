@@ -17,7 +17,7 @@ class TestPlugins(object):
     def test_default_null(self, caplog):
         file = 'tests/test_plugins/good'
         with Wrap(self, [file], [], expect_exit=False):
-            assert ('NullCheck-None PASS in {}'.format(file)) in caplog.text
+            assert ('[PASS] NullCheck:{}'.format(file)) in caplog.text
 
     def test_disable_null(self, caplog):
         file = 'tests/test_plugins/good'
