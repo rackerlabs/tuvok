@@ -13,11 +13,11 @@ class TestVariable(object):
         file = 'tests/test_variable/bad/variables.tf'
 
         with Wrap(self, [file]):
-            assert ('Variables must contain description FAIL in {}:foo'.format(file)) in caplog.text
-            assert ('Variables must contain type FAIL in {}:bar'.format(file)) in caplog.text
+            assert ('[FAIL] variable_description:Variables must contain description:foo:{}'.format(file)) in caplog.text
+            assert ('[FAIL] variable_type:Variables must contain type:bar'.format(file)) in caplog.text
 
     def test_passes_if_variable_has_type_and_description(self, caplog):
         file = 'tests/test_variable/good/variables.tf'
         with Wrap(self, [file], expect_exit=False):
-            assert ('Variables must contain description PASS in {}:'.format(file)) in caplog.text
-            assert ('Variables must contain type PASS in {}:'.format(file)) in caplog.text
+            assert ('[PASS] variable_description:Variables must contain description:{}'.format(file)) in caplog.text
+            assert ('[PASS] variable_type:Variables must contain type:{}'.format(file)) in caplog.text

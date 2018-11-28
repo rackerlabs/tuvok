@@ -1,4 +1,4 @@
-from .base import BaseTuvokCheck, Severity
+from .base import BaseTuvokCheck, CheckResult, Severity
 from tuvok import hcl2json
 import os
 
@@ -16,13 +16,9 @@ class FileLayoutCheck(BaseTuvokCheck):
             Severity.ERROR
         )
 
-    def get_explanation(self):
-        return '\n'.join(set(self.reasons))
-
     def check(self, path):
         parsed_json = hcl2json(path)
-        self.reasons = []
-        self.failed = False
+        results = []
 
         # output/input/variable have been put in the wrong file
         TYPES = set(['output', 'variable'])
@@ -32,9 +28,11 @@ class FileLayoutCheck(BaseTuvokCheck):
             expected_filename = '{}s.tf'.format(prefix)
 
             if len(found_top_level_objs) > 0 and actual_filename != expected_filename:
-                self.failed = True
                 bad_names = [','.join(list(x.keys())) for x in found_top_level_objs]
-                expl = '{}:{} was not found in a file named {}'.format(prefix, ','.join(bad_names), expected_filename)
-                self.reasons.append(expl)
+                expl = '{}:{} was not found in a file named {}:{}'.format(prefix, ','.join(bad_names), expected_filename, path)
+                results.append(CheckResult(False, expl, self))
+            else:
+                expl = ':'.join([prefix, path])
+                results.append(CheckResult(True, expl, self))
 
-        return not self.failed
+        return results

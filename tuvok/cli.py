@@ -1,13 +1,14 @@
 import argparse
 import json
 import logging
+import concurrent.futures
 import os
 import platform
 import re
 import sys
 
 from tuvok import __version__
-from tuvok.checks import Severity
+from tuvok.checks import CheckResult, Severity
 
 
 EXCLUSIONS = [r'.git', r'.terraform', r'.circleci', '__pycache__', r'*.egg-info']
@@ -161,30 +162,44 @@ def main():
                 True
             ))
 
-    LOG.info('Scanning %s files and executing checks', len(files_to_scan))
-    error_encountered = []
+    LOG.info('Scanning %s files and executing %s checks', len(files_to_scan), len(tuvok_checks))
+
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+    tasks = []
     for f in files_to_scan:
         for p in tuvok_checks:
             if p.get_name() in config['ignore']:
                 continue
 
-            check_result = p.safe_check(f)
-            str_result = 'PASS' if check_result else 'FAIL'
-            sev_result = Severity.DEBUG if check_result else p.get_severity()
-            error_encountered.append(sev_result)
+            tasks.append(executor.submit(p.check, f))
 
-            LOG.log(
-                sev_result.value,
-                "{}-{} {} in {}:{}".format(
-                    p.get_name(),
-                    p.get_description(),
-                    str_result,
-                    f,
-                    p.get_explanation() or 'unknown'
-                )
-            )
+    # aggregate up all the tasks, and if the results are a list, ensure we flatten
+    results = []
+    for future in tasks:
+        r = future.result()
 
-    if Severity.ERROR in error_encountered:
+        if type(r) is list:
+            for r_i in r:
+                results.append(r_i)
+        elif type(r) is CheckResult:
+            results.append(r)
+        else:
+            raise Exception('Result of check was not a CheckResult or List')
+
+    for check_result in results:
+        str_result = 'PASS' if check_result.get_success() else 'FAIL'
+        sev_result = Severity.DEBUG if check_result.get_success() else check_result.get_severity()
+
+        # join everything truthy together with colons
+        str_explanation = ":".join([x for x in [check_result.get_name(), check_result.get_description(), check_result.get_explanation()] if x])
+
+        LOG.log(
+            sev_result.value,
+            "[{}] {}".format(str_result, str_explanation)
+        )
+
+    # if any checks failed, get their severity, and see if any are ERROR
+    if Severity.ERROR in [r.get_severity() for r in results if not r.get_success()]:
         LOG.info("Validation errors reported.")
         sys.exit(1)
 

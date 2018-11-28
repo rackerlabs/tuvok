@@ -16,6 +16,33 @@ class Severity(Enum):
     NOTSET = logging.NOTSET
 
 
+class CheckResult(metaclass=abc.ABCMeta):
+
+    def __init__(self, success=True, explanation=None, check=None):
+        self.success = success
+        self.explanation = explanation
+
+        # values copied from check
+        self.severity = check.get_severity()
+        self.name = check.get_name()
+        self.description = check.get_description()
+
+    def get_explanation(self):
+        return self.explanation
+
+    def get_success(self):
+        return self.success
+
+    def get_severity(self):
+        return self.severity
+
+    def get_name(self):
+        return self.name
+
+    def get_description(self):
+        return self.description
+
+
 class BaseTuvokCheck(metaclass=abc.ABCMeta):
 
     def __init__(self, name=None, description=None, severity=Severity.WARNING, prevent=False):
@@ -34,16 +61,6 @@ class BaseTuvokCheck(metaclass=abc.ABCMeta):
 
     def get_severity(self):
         return self.severity
-
-    def get_explanation(self):
-        return None
-
-    def safe_check(self, path):
-        try:
-            return self.check(path)
-        except Exception as e:
-            LOG.log(self.severity, e)
-            return False
 
     @abc.abstractmethod
     def check(self, path):
