@@ -15,6 +15,7 @@ setup(
     license=__license__,
     classifiers=[
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7'
     ],
     keywords='',
     packages=find_packages(exclude=['venv']),
