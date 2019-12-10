@@ -56,6 +56,9 @@ class BaseTuvokCheck(metaclass=abc.ABCMeta):
     def get_name(self):
         return self.name
 
+    def get_type(self):
+        return self.__class__.__name__
+
     def get_description(self):
         return self.description
 
