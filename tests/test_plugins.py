@@ -9,10 +9,37 @@ class TestPlugins(object):
     def teardown(self):
         self.main = None
 
-    def test_list_plugins(self, caplog):
+    def test_list_plugins(self, capsys):
         file = '--list-plugins'
+        expected_checks = [
+            {
+                'check': 'FileLayoutCheck:FileLayoutCheck',
+                'severity': 'ERROR',
+                'description': 'Ensure variables and outputs are only in files of the same name',
+            },
+            {
+                'check': 'NullCheck:NullCheck',
+                'severity': 'WARNING',
+                'description': 'None',
+            },
+            {
+                'check': 'JqCheck:variable_description',
+                'severity': 'ERROR',
+                'description': 'Variables must contain description',
+            },
+            {
+                'check': 'JqCheck:output_description',
+                'severity': 'WARNING',
+                'description': 'Outputs should contain description',
+            },
+        ]
+
         with Wrap(self, [file], [], expect_exit=False):
-            assert 'tuvok.plugins.null.NullPlugin' in caplog.text
+            out, err = capsys.readouterr()
+            for plugin in ['BuiltinPlugin', 'NullPlugin']:
+                assert plugin in out
+            for check in expected_checks:
+                assert "[Severity.{severity}] {check}\n\t{description}".format(**check) in out
 
     def test_default_null(self, caplog):
         file = 'tests/test_plugins/good'

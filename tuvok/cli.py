@@ -138,12 +138,6 @@ def main():
     logging.basicConfig(level=int(os.environ.get('LOG_LEVEL', level)))
     LOG.setLevel(int(os.environ.get('LOG_LEVEL', level)))
 
-    from tuvok import tuvok_plugins, tuvok_checks
-    if args.list_plugins:
-        LOG.warning('Loaded plugins: %s', tuvok_plugins)
-        LOG.warning('Loaded checks: %s', tuvok_checks)
-        return
-
     # find any files and configs we might be interested in
     (files_to_scan, extra_configs) = build_file_list(args.path)
 
@@ -151,6 +145,7 @@ def main():
     config = build_configuration(args.config, extra_configs)
 
     # dynamically create any checks listed in the local jq config
+    from tuvok import tuvok_plugins, tuvok_checks
     from tuvok.checks.jq import JqCheck
     for check, check_details in config['checks'].items():
         if check_details['type'] == 'jq':
@@ -162,6 +157,13 @@ def main():
                 True
             ))
 
+    if args.list_plugins:
+        print('Loaded plugins: %s' % ', '.join([x.__name__ for x in tuvok_plugins]))
+        print('\nLoaded checks:\n')
+        for c in tuvok_checks:
+            print('[{}] {}:{}\n\t{}'.format(c.get_severity(), c.get_type(), c.get_name(), c.get_description()))
+        return
+    
     LOG.info('Scanning %s files and executing %s checks', len(files_to_scan), len(tuvok_checks))
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
