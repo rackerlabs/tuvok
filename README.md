@@ -138,3 +138,5 @@ When writing our own tool, we wanted the following:
 - Open sourcing this tool
 
 See [issues](issues) list for specific features and ideas.
+
+See [changelog](CHANGELOG.md) for list of updates in each release.
