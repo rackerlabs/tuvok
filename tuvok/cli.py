@@ -7,7 +7,7 @@ import platform
 import re
 import sys
 
-from tuvok import __version__
+from tuvok import __version__, hcl2json
 from tuvok.checks import CheckResult, Severity
 
 
@@ -46,8 +46,8 @@ def load_config(file, merge=None):
                 merge['checks'][key] = value
         for rule in config.get('ignore', []):
             if rule in merge['checks'] and merge['checks'][rule].get('prevent_override', False):
-                    LOG.error("Cannot ignore check {} in Configuration file {}".format(rule, file))
-                    sys.exit(2)
+                LOG.error("Cannot ignore check {} in Configuration file {}".format(rule, file))
+                sys.exit(2)
             if rule not in merge['ignore']:
                 LOG.info("Rule {} will be ignored by custom config {}".format(rule, file))
                 merge['ignore'].append(rule)
@@ -169,6 +169,7 @@ def main():
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
     tasks = []
     for f in files_to_scan:
+        hcl2json(f)  # Perform initial json conversion for file and cache results
         for p in tuvok_checks:
             if p.get_name() in config['ignore']:
                 continue

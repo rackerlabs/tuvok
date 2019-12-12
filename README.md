@@ -57,6 +57,35 @@ $ docker run local/tuvok:latest -c "cd /tuvok && pytest -q"
 17 passed in 9.61 seconds
 ```
 
+### Custom configuration files
+
+Tuvok supports custom configuration rules, allowing the creation of additional rules, or overriding the behavior of existing rules.  The tool will load and merge configurations from any explicitly provided configuration file, or from any file named `.tuvok.json` in a scanned directory.  Currently, only jq based checks can be included in the custom configuration.  An example custom configuration file can be found below:
+
+```JSON
+{
+  "checks": {
+    "my_custom_check": {
+      "description": "My Custom Check description",
+      "severity": "ERROR",
+      "type": "jq",
+      "jq": ".module[] | keys[] | select(match(\"[A-Z-]\"))",
+      "prevent_override": false
+    }
+  },
+  "ignore": ["variable_type"]
+}
+```
+
+- `checks` - A mapping of jq based configuration checks.  Existing checks can be overridden, and additional checks can be added.  Each check should be given a unique name.  Each check has the following properties.  These properties are optional when overriding an existing check, and required for additional checks:
+  - `description` - A basic description of the configuration check
+  - `severity` - The severity level of the check.  Allowed values include `INFO`, `WARNING`, & `ERROR`
+  - `type` - The type of the configuration check.  Allowed values include `jq`
+  - `jq` - The jq query string that matches test failures. (I.E. the example check will match any module with a logical name that includes upper case letters or dashes.)
+  - `prevent_override` - A boolean flag that prevents other custom configurations from modifying the check.
+- `ignore` - A list of check names that should be skipped by the tool when evaluating a file.
+
+*NOTE:* The generated json format of files changed with version 0.1.0 of the tool when HCL2 support was added.  If custom config reules were created prior to this version, JQ query strings should be tested and updated as necessary.
+
 ## How to propose new rules
 
 Please see the [contributing guidelines](docs/CONTRIBUTING.md) for general information on contributing to this project. The process for proposing additional rules, modifying existing rules, or removing/deprecating rules will be followed like any other contribution.

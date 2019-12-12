@@ -18,18 +18,17 @@ __license__ = 'Apache 2.0'
 __copyright__ = 'Copyright Rackspace US, Inc. 2018'
 
 
-import logging
+import hcl2
 import importlib
 import inspect
+import logging
 import pkgutil
-import os
-import subprocess
-import json
 
 import tuvok.plugins
 
 
 LOG = logging.getLogger()
+JSON_CACHE = {}
 
 
 def iter_namespace(ns_pkg):
@@ -41,15 +40,10 @@ def not_abstract_class(o):
 
 
 def hcl2json(f):
-    query = 'json2hcl --reverse < {}'.format(os.path.abspath(f))
-    proc = subprocess.Popen(
-        query, shell=True, stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE, universal_newlines=True)
-    (stdout, stderr) = proc.communicate()
-
-    if proc.returncode > 0:
-        raise Exception(str(stderr))
-    return json.loads(str(stdout))
+    if f not in JSON_CACHE:
+        with(open(f, 'r')) as file:
+            JSON_CACHE[f] = hcl2.load(file)
+    return JSON_CACHE[f]
 
 
 plugin_modules = [
