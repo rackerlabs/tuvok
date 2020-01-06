@@ -12,39 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__title__ = 'tuvok'
-__version__ = '0.1.0'
-__license__ = 'Apache 2.0'
-__copyright__ = 'Copyright Rackspace US, Inc. 2018'
-
-
-import hcl2
 import importlib
-import inspect
 import logging
-import pkgutil
+import inspect
 
 import tuvok.plugins
 
+from .__utils__ import hcl2json, iter_namespace, not_abstract_class
+from .__version__ import __version__, __title__, __copyright__, __license__
 
 LOG = logging.getLogger()
-JSON_CACHE = {}
-
-
-def iter_namespace(ns_pkg):
-    return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
-
-
-def not_abstract_class(o):
-    return inspect.isclass(o) and not inspect.isabstract(o)
-
-
-def hcl2json(f):
-    if f not in JSON_CACHE:
-        with(open(f, 'r')) as file:
-            JSON_CACHE[f] = hcl2.load(file)
-    return JSON_CACHE[f]
-
 
 plugin_modules = [
     importlib.import_module(name)
