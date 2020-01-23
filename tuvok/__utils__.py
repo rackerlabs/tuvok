@@ -1,13 +1,22 @@
-import  hcl2
+import hcl2
 import inspect
+import logging
 import pkgutil
+import sys
+
+from lark.exceptions import UnexpectedToken
 
 JSON_CACHE = {}
+LOG = logging.getLogger().getChild('tuvok')
 
 def hcl2json(f):
     if f not in JSON_CACHE:
-        with(open(f, 'r')) as file:
-            JSON_CACHE[f] = hcl2.load(file)
+        try:
+            with(open(f, 'r')) as file:
+                JSON_CACHE[f] = hcl2.load(file)
+        except UnexpectedToken as e:
+            LOG.error("Error parsing {}: {}".format(f, e))
+            sys.exit(1)
     return JSON_CACHE[f]
 
 def iter_namespace(ns_pkg):
