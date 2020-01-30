@@ -1,3 +1,8 @@
+0.1.2 (2020-01-29)
+------------------
+
+* Enhancement: Include filename causing parsing error (#39)
+
 0.1.1 (2020-01-06)
 ------------------
 
