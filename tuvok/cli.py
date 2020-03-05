@@ -147,9 +147,12 @@ def main():
     # dynamically create any checks listed in the local jq config
     from tuvok import tuvok_plugins, tuvok_checks
     from tuvok.checks.jq import JqCheck
+
+    tc_copy = tuvok_checks.copy()
+
     for check, check_details in config['checks'].items():
         if check_details['type'] == 'jq':
-            tuvok_checks.append(JqCheck(
+            tc_copy.append(JqCheck(
                 check,
                 check_details['description'],
                 check_details['severity'],
@@ -160,17 +163,17 @@ def main():
     if args.list_plugins:
         print('Loaded plugins: %s' % ', '.join([x.__name__ for x in tuvok_plugins]))
         print('\nLoaded checks:\n')
-        for c in tuvok_checks:
+        for c in tc_copy:
             print('[{}] {}:{}\n\t{}'.format(c.get_severity(), c.get_type(), c.get_name(), c.get_description()))
         return
-    
-    LOG.info('Scanning %s files and executing %s checks', len(files_to_scan), len(tuvok_checks))
+
+    LOG.info('Scanning %s files and executing %s checks', len(files_to_scan), len(tc_copy))
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
     tasks = []
     for f in files_to_scan:
         hcl2json(f)  # Perform initial json conversion for file and cache results
-        for p in tuvok_checks:
+        for p in tc_copy:
             if p.get_name() in config['ignore']:
                 continue
 
