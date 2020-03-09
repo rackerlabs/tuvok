@@ -41,6 +41,20 @@
       "type": "jq",
       "jq": ".module[] | { _module_name: . | keys[], _data: .[] } | select((._data.source != null) and (._data.source[] | startswith(\"github.com/\")) and (._data.source[] | startswith(\"github.com/rackspace-infrastructure-automation\") | not)) | ._module_name",
       "prevent_override": false
+    },
+    "name_snake_case": {
+      "description": "Logical names should use snake_case",
+      "severity": "WARNING",
+      "type": "jq",
+      "jq": "to_entries[] | select(.key | test(\"variable|output|module\")) | {_type: .key, _name: .value[] | keys[] | select(test(\"[^a-z0-9_]\"))} | ._type + \":\" + ._name",
+      "prevent_override": false
+    },
+    "resource_name_snake_case": {
+      "description": "Logical names should use snake_case",
+      "severity": "WARNING",
+      "type": "jq",
+      "jq": "to_entries[] | select(.key | test(\"data|resource\")) | {_type: .key, _sub: .value[] | to_entries[]} | {_type: (._type + \":\" + ._sub.key), _name: ._sub.value | keys[] | select(test(\"[^a-z0-9_]\"))} | ._type + \":\" + ._name",
+      "prevent_override": false
     }
   },
   "ignore": []
