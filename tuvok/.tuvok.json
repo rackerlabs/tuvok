@@ -1,5 +1,12 @@
 {
   "checks": {
+    "variable_default": {
+      "description": "Variables should not contain defaults.  Values should be provided via a tfvars file",
+      "severity": "WARNING",
+      "type": "jq",
+      "jq": ".variable[] | {_variable_name: . | keys[], _data: .[]} | select(._data.default != null) | ._variable_name",
+      "prevent_override": false
+    },
     "variable_description": {
       "description": "Variables must contain description",
       "severity": "ERROR",
