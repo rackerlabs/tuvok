@@ -55,6 +55,13 @@
       "type": "jq",
       "jq": "to_entries[] | select(.key | test(\"data|resource\")) | {_type: .key, _sub: .value[] | to_entries[]} | {_type: (._type + \":\" + ._sub.key), _name: ._sub.value | keys[] | select(test(\"[^a-z0-9_]\"))} | ._type + \":\" + ._name",
       "prevent_override": false
+    },
+    "provider_has_region": {
+      "description": "Provider block should have region declared",
+      "severity": "WARNING",
+      "type": "jq",
+      "jq": ".provider[] | {_provider_name: . | keys[], _data: .[]} | select(._data.region == null) | ._provider_name",
+      "prevent_override": false
     }
   },
   "ignore": []
