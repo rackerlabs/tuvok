@@ -1,3 +1,12 @@
+0.1.3 (2020-03-20)
+------------------
+
+* Enhancement: Add checks to ensure logical names use snake_case (#41)
+* Enhancement: Add check to ensure AWS provider block has a region set (#43)
+* Enhancement: Add check to flag variables with defined defaults (#44)
+* Enhancement: Add check to ensure versions are pinned in provider block (#45)
+* Bugfix: Resolve loading plugins multiple times (#42)
+
 0.1.2 (2020-01-29)
 ------------------
 
