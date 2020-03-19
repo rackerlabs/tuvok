@@ -14,10 +14,12 @@ class TestVariable(object):
 
         with Wrap(self, [file]):
             assert ('[FAIL] variable_description:Variables must contain description:foo:{}'.format(file)) in caplog.text
-            assert ('[FAIL] variable_type:Variables must contain type:bar'.format(file)) in caplog.text
+            assert ('[FAIL] variable_type:Variables must contain type:bar:{}'.format(file)) in caplog.text
+            assert ('[FAIL] variable_default:Variables should not contain defaults.  Values should be provided via a tfvars file:baz:{}'.format(file)) in caplog.text
 
-    def test_passes_if_variable_has_type_and_description(self, caplog):
+    def test_passes_if_variable_has_type_and_description_and_no_default(self, caplog):
         file = 'tests/test_variable/good/variables.tf'
         with Wrap(self, [file], expect_exit=False):
             assert ('[PASS] variable_description:Variables must contain description:{}'.format(file)) in caplog.text
             assert ('[PASS] variable_type:Variables must contain type:{}'.format(file)) in caplog.text
+            assert ('[PASS] variable_default:Variables should not contain defaults.  Values should be provided via a tfvars file:{}'.format(file)) in caplog.text
