@@ -69,6 +69,13 @@
       "type": "jq",
       "jq": ".provider[] | {_provider_name: . | keys[], _data: .[]} | select(._data.region == null) | ._provider_name",
       "prevent_override": false
+    },
+    "provider_has_version": {
+      "description": "Provider block should have version pinned",
+      "severity": "WARNING",
+      "type": "jq",
+      "jq": ".provider[] | {_provider_name: . | keys[], _data: .[]} | select(._data.version == null) | ._provider_name",
+      "prevent_override": false
     }
   },
   "ignore": []
