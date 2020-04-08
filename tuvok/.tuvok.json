@@ -67,7 +67,7 @@
       "description": "Provider block should have region declared",
       "severity": "WARNING",
       "type": "jq",
-      "jq": ".provider[] | {_provider_name: . | keys[], _data: .[]} | select(._data.region == null) | ._provider_name",
+      "jq": ".provider[] | select(.aws) | {_provider_name: . | keys[], _data: .[]} | select(._data.region == null) | ._provider_name",
       "prevent_override": false
     },
     "provider_has_version": {

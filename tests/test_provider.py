@@ -10,7 +10,7 @@ class TestProvider(object):
         self.main = None
 
     def test_fails_if_region_not_in_provider_block(self, caplog):
-        file = 'tests/test_provider/bad/main.tf'
+        file = 'tests/test_provider/bad/no_region.tf'
 
         with Wrap(self, [file], expect_exit=False):
             assert ('[FAIL] provider_has_region:Provider block should have region declared:aws:{}'.format(file)) in caplog.text
@@ -22,7 +22,7 @@ class TestProvider(object):
             assert ('[PASS] provider_has_region:Provider block should have region declared:{}'.format(file)) in caplog.text
 
     def test_fails_if_version_not_in_provider_block(self, caplog):
-        file = 'tests/test_provider/bad/main.tf'
+        file = 'tests/test_provider/bad/no_version.tf'
 
         with Wrap(self, [file], expect_exit=False):
             assert ('[FAIL] provider_has_version:Provider block should have version pinned:aws:{}'.format(file)) in caplog.text
