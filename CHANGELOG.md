@@ -1,3 +1,8 @@
+0.1.4 (2020-04-08)
+------------------
+
+* Bugfix: Addressed issue where region check would invalidly mark a non-aws provider block as invalid for the no region check (#47)
+
 0.1.3 (2020-03-20)
 ------------------
 
