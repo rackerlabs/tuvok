@@ -4,6 +4,9 @@ jobs:
     working_directory: /app
     docker:
       - image: docker:18.06.3-ce-git
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_TOKEN
     steps:
       - checkout
       - setup_remote_docker
